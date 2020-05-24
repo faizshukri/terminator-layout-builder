@@ -84,7 +84,12 @@ def resolvePane(pane, parentEl):
         return {next_id('terminal'): {
             'parent': parentEl['id'], 'type': 'Terminal', 'command': 'bash -c "trap $SHELL EXIT; %s"' % cmd, 'profile': 'default'}}
 
-    return True
+    if any(k in pane for k in ("vertical", "horizontal")):
+        template = {}
+        for key, value in resolvePaned(pane, parentEl).items():
+            pydash.assign(template, {key: value})
+
+        return template
 
 
 def resolvePaned(window: Split, parentEl: dict) -> dict:
