@@ -75,14 +75,10 @@ def readConfigTest(file: str) -> List[Layout]:
 
 
 def resolvePane(pane, parentEl):
-    # if any(k in pane for k in ("vertical", "horizontal")):
-    #     print(pane)
-    # pydash.assign(template, resolvePaned(window, windowEl))
-
     cmd: Terminal = pane.get('cmd')
     if cmd:
-        return {next_id('terminal'): {
-            'parent': parentEl['id'], 'type': 'Terminal', 'command': 'bash -c "trap $SHELL EXIT; %s"' % cmd, 'profile': 'default'}}
+        return {next_id('terminal'): pydash.assign(pane, {
+            'parent': parentEl['id'], 'type': 'Terminal', 'command': 'bash -c "trap $SHELL EXIT; %s"' % cmd, 'profile': 'default'})}
 
     if any(k in pane for k in ("vertical", "horizontal")):
         template = {}
@@ -100,14 +96,15 @@ def resolvePaned(window: Split, parentEl: dict) -> dict:
     splitEl = {"parent": parentEl['id'],
                "type": splitType, "id": next_id(splitType.lower())}
 
+    if window.get('order'):
+        splitEl['order'] = window.get('order')
+
     pydash.assign(template, {splitEl['id']: splitEl})
 
     panes = (window.get('vertical')
              or window.get('horizontal')).get('panes')
 
     lala = list(map(lambda x: resolvePane(x, splitEl), panes))
-
-    print(lala)
 
     for key, value in [(k, v) for x in lala for (k, v) in x.items()]:
         pydash.assign(template, {key: value})
@@ -116,7 +113,7 @@ def resolvePaned(window: Split, parentEl: dict) -> dict:
 
 
 def main():
-    for layout, windows in readConfigTest('data')[2].items():
+    for layout, windows in readConfigTest('data')[3].items():
         for window in windows:
             print(window)
             template = {}
@@ -142,7 +139,29 @@ def main():
 
             notebook: Notebook = window.get('notebook')
             if notebook:
-                print(notebook['tabs'])
+                # [[[child0.1]]]
+                # active_page = 0
+                # labels = Main, Logs
+                # parent = child0
+                # type = Notebook
+                notebookEl = {"parent": windowEl.get('id'), "type": "Notebook",
+                              "id": next_id('notebook')}
+
+                # [[[child1]]]
+                # order = 0
+                # parent = child0.1
+                # type = VPaned
+                # tabEl = {"parent": notebookEl.get('id'), "type": "VPaned",
+                #          "id": next_id('tab')}
+
+                pydash.assign(template, {notebookEl['id']: notebookEl})
+                # pydash.assign(template, {tabEl['id']: tabEl})
+
+                lala = list(map(lambda i_el: resolvePane(pydash.assign(
+                    i_el[1], {"order": i_el[0]}), notebookEl), enumerate(notebook['tabs'])))
+
+                for key, value in [(k, v) for x in lala for (k, v) in x.items()]:
+                    pydash.assign(template, {key: value})
 
             print(json.dumps(template, indent=2))
             config["layouts"] = {}
