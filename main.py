@@ -50,6 +50,8 @@ config = ConfigObj(indent_type="  ")
 
 config.filename = "./hey.ini"
 
+root = None
+
 _ID = 0
 
 
@@ -76,7 +78,13 @@ def readConfigTest(file: str) -> List[Layout]:
 
 
 def resolveElem(elem, parentElem):
+
+    elemRoot = elem.get('root')
+
     if parentElem is None:
+        if elemRoot:
+            global root
+            root = elemRoot
         windowElem = {"parent": "", "type": "Window",
                       "id": next_id('window')}
         return pydash.assign({windowElem['id']: windowElem}, resolveElem(elem, windowElem))
@@ -90,6 +98,9 @@ def resolveElem(elem, parentElem):
 
         if elem.get('title'):
             cmdElem['title'] = elem.get('title')
+
+        if elemRoot or root:
+            cmdElem['directory'] = elemRoot or root
 
         return {next_id('terminal'): cmdElem}
 
