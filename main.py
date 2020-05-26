@@ -9,6 +9,7 @@ import pydash
 import json
 import sys
 import numbers
+from collections import ChainMap
 
 
 @dataclass
@@ -159,16 +160,15 @@ def resolveElem(elem, parentElem):
 
 
 def main():
-    for layout, windows in readConfigTest('data')[4].items():
-        for window in windows:
-            print(window)
+    config["layouts"] = {}
+    for layout, windows in readConfigTest('data')[0].items():
+        global _ID
+        _ID = 0
 
-            result = resolveElem(window, None)
+        config["layouts"][layout] = dict(
+            ChainMap(*list(map(lambda window: resolveElem(window, None), windows))))
 
-            print(json.dumps(result, indent=2))
-            config["layouts"] = {}
-            config["layouts"][layout] = result
-            config.write()
+    config.write()
 
 
 if __name__ == "__main__":
