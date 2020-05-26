@@ -13,6 +13,7 @@ import logging
 
 terminatorConfigPath = "%s/.config/terminator/config" % str(Path.home())
 layoutDefinitionFile = "%s/.config/terminator/layout.yaml" % str(Path.home())
+layoutCacheFile = "%s/.config/terminator/.layout_cache" % str(Path.home())
 
 config = ConfigObj(terminatorConfigPath, indent_type="  ") if os.path.isfile(
     terminatorConfigPath) else ConfigObj(indent_type="  ")
@@ -125,22 +126,32 @@ def main():
             sys.exit("Layout file not exists [%s]. Skipped." %
                      layoutDefinitionFile)
 
-        for layout, windows in readConfig(layoutDefinitionFile).items():
+        cacheFile = open(layoutCacheFile)
+        cacheFileContent = cacheFile.read().split(",")
+
+        def filterFn(layout):
+            if pydash.has(config, 'layouts.%s' % layout[0]) and layout[0] not in cacheFileContent:
+                sys.stdout.write(
+                    "Layout %s already exists. Replace? [y/N]: " % layout[0])
+                choice = input().lower()
+                if (choice != 'y'):
+                    return False
+            return True
+
+        layouts = list(
+            filter(filterFn, readConfig(layoutDefinitionFile).items()))
+
+        for layout, windows in layouts:
             global _ID, root
             _ID = 0
             root = None
 
-            if pydash.has(config, 'layouts.%s' % layout):
-                sys.stdout.write(
-                    "Layout %s already exists. Replace? [y/N]: " % layout)
-                choice = input().lower()
-                if (choice != 'y'):
-                    continue
-
             pydash.objects.set_(config, 'layouts.%s' % layout, dict(
                 ChainMap(*list(map(lambda window: resolveElem(window, None), windows)))))
 
-        config.write()
+        cacheFile = open(layoutCacheFile, 'w')
+        cacheFile.write(",".join(list(map(lambda layout: layout[0], layouts))))
+        cacheFile.close()
     except (KeyboardInterrupt, SystemExit):
         pass
     except Exception as e:
