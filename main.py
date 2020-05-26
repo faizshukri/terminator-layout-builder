@@ -1,59 +1,21 @@
 #!/usr/bin/env python
 
-from __future__ import annotations
-from dataclasses import dataclass
-from typing import List, TypeVar, Generic, Optional, Union, Dict
-from configobj import ConfigObj
-import yaml
-import pydash
-import json
-import sys
-import numbers
 from collections import ChainMap
-import os.path
+from configobj import ConfigObj
 from pathlib import Path
-
-
-@dataclass
-class Terminal:
-    cmd: str
-    title: Optional[str]
-
-
-@dataclass
-class Split:
-    horizontal: Optional[Paned]
-    vertical: Optional[Paned]
-
-
-@dataclass
-class Paned:
-    ratio: float
-    panes: List[Split, Terminal]
-
-
-Tab = Union[Terminal, Split]
-
-
-@dataclass
-class Notebook:
-    labels: List[str]
-    tabs: List[Tab]
-
-
-@dataclass
-class Window(Split, Terminal):
-    root: str
-    notebook: Optional[Notebook]
-
-
-Layout = Dict[str, List[Window]]
+import numbers
+import os.path
+import pydash
+import sys
+import yaml
 
 terminatorConfigPath = "%s/.config/terminator/config" % str(Path.home())
+layoutDefinitionFile = "%s/.config/terminator/layout.yaml" % str(Path.home())
+
 config = ConfigObj(terminatorConfigPath, indent_type="  ") if os.path.isfile(
     terminatorConfigPath) else ConfigObj(indent_type="  ")
 
-config.filename = "./hey.ini"
+config.filename = terminatorConfigPath
 
 root = None
 
@@ -66,18 +28,10 @@ def next_id(name):
     return '%s%s' % (name, _ID)
 
 
-def readConfig(file: str) -> Layout:
+def readConfig(file: str):
     with open(file, 'r') as stream:
         try:
             return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-
-
-def readConfigTest(file: str) -> List[Layout]:
-    with open(file, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)['tests']
         except yaml.YAMLError as exc:
             print(exc)
 
@@ -141,21 +95,21 @@ def resolveElem(elem, parentElem):
             pydash.assign(template, {key: value})
         return template
 
-    notebook: Notebook = elem.get('notebook')
-    if notebook:
+    tabs = elem.get('tabs')
+    if tabs:
         template = {}
-        notebookEl = {"parent": parentElem.get('id'), "type": "Notebook",
-                      "id": next_id('notebook'), "active_page": 0}
+        tabsEl = {"parent": parentElem.get('id'), "type": "Notebook",
+                  "id": next_id('notebook'), "active_page": 0}
 
-        if notebook.get('labels'):
-            if(len(notebook.get('labels')) != len(notebook.get('tabs'))):
+        if tabs.get('labels'):
+            if(len(tabs.get('labels')) != len(tabs.get('items'))):
                 sys.exit(
-                    "[ERROR] The labels must be the same size with the tabs.")
-            notebookEl['labels'] = notebook.get('labels')
+                    "[ERROR] The labels must be the same size with the items.")
+            tabsEl['labels'] = tabs.get('labels')
 
-        pydash.assign(template, {notebookEl['id']: notebookEl})
+        pydash.assign(template, {tabsEl['id']: tabsEl})
         lala = list(map(lambda i_el: resolveElem(pydash.assign(
-            i_el[1], {"order": i_el[0]}), notebookEl), enumerate(notebook['tabs'])))
+            i_el[1], {"order": i_el[0]}), tabsEl), enumerate(tabs['items'])))
         for key, value in [(k, v) for x in lala for (k, v) in x.items()]:
             pydash.assign(template, {key: value})
         return template
@@ -164,9 +118,14 @@ def resolveElem(elem, parentElem):
 
 
 def main():
-    for layout, windows in readConfigTest('data')[0].items():
-        global _ID
+    if not os.path.exists(layoutDefinitionFile):
+        sys.exit("Layout file not exists [%s]. Skipped." %
+                 layoutDefinitionFile)
+
+    for layout, windows in readConfig(layoutDefinitionFile).items():
+        global _ID, root
         _ID = 0
+        root = None
 
         if pydash.has(config, 'layouts.%s' % layout):
             sys.stdout.write(
