@@ -10,6 +10,8 @@ import json
 import sys
 import numbers
 from collections import ChainMap
+import os.path
+from pathlib import Path
 
 
 @dataclass
@@ -47,7 +49,9 @@ class Window(Split, Terminal):
 
 Layout = Dict[str, List[Window]]
 
-config = ConfigObj(indent_type="  ")
+terminatorConfigPath = "%s/.config/terminator/config" % str(Path.home())
+config = ConfigObj(terminatorConfigPath, indent_type="  ") if os.path.isfile(
+    terminatorConfigPath) else ConfigObj(indent_type="  ")
 
 config.filename = "./hey.ini"
 
@@ -160,13 +164,19 @@ def resolveElem(elem, parentElem):
 
 
 def main():
-    config["layouts"] = {}
     for layout, windows in readConfigTest('data')[0].items():
         global _ID
         _ID = 0
 
-        config["layouts"][layout] = dict(
-            ChainMap(*list(map(lambda window: resolveElem(window, None), windows))))
+        if pydash.has(config, 'layouts.%s' % layout):
+            sys.stdout.write(
+                "Layout %s already exists. Replace? [y/N]: " % layout)
+            choice = input().lower()
+            if (choice != 'y'):
+                continue
+
+        pydash.objects.set_(config, 'layouts.%s' % layout, dict(
+            ChainMap(*list(map(lambda window: resolveElem(window, None), windows)))))
 
     config.write()
 
