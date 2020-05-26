@@ -4,12 +4,13 @@ from collections import ChainMap
 from configobj import ConfigObj
 from pathlib import Path
 import numbers
-import os.path
+import os
 import pydash
 import sys
 import yaml
 import traceback
 import logging
+import argparse
 
 terminatorConfigPath = "%s/.config/terminator/config" % str(Path.home())
 layoutDefinitionFile = "%s/.config/terminator/layout.yaml" % str(Path.home())
@@ -121,6 +122,11 @@ def resolveElem(elem, parentElem):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--layout", type=str,
+                        help="launch layout by the layout name")
+    args = parser.parse_args()
+
     try:
         if not os.path.exists(layoutDefinitionFile):
             sys.exit("Layout file not exists [%s]. Skipped." %
@@ -149,9 +155,14 @@ def main():
             pydash.objects.set_(config, 'layouts.%s' % layout, dict(
                 ChainMap(*list(map(lambda window: resolveElem(window, None), windows)))))
 
+        config.write()
+
         cacheFile = open(layoutCacheFile, 'w')
         cacheFile.write(",".join(list(map(lambda layout: layout[0], layouts))))
         cacheFile.close()
+
+        if args.layout and pydash.has(config, 'layouts.%s' % args.layout):
+            os.system("terminator -m -b -l %s" % args.layout)
     except (KeyboardInterrupt, SystemExit):
         pass
     except Exception as e:
