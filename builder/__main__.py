@@ -8,6 +8,8 @@ import os.path
 import pydash
 import sys
 import yaml
+import traceback
+import logging
 
 terminatorConfigPath = "%s/.config/terminator/config" % str(Path.home())
 layoutDefinitionFile = "%s/.config/terminator/layout.yaml" % str(Path.home())
@@ -118,27 +120,28 @@ def resolveElem(elem, parentElem):
 
 
 def main():
-    if not os.path.exists(layoutDefinitionFile):
-        sys.exit("Layout file not exists [%s]. Skipped." %
-                 layoutDefinitionFile)
+    try:
+        if not os.path.exists(layoutDefinitionFile):
+            sys.exit("Layout file not exists [%s]. Skipped." %
+                     layoutDefinitionFile)
 
-    for layout, windows in readConfig(layoutDefinitionFile).items():
-        global _ID, root
-        _ID = 0
-        root = None
+        for layout, windows in readConfig(layoutDefinitionFile).items():
+            global _ID, root
+            _ID = 0
+            root = None
 
-        if pydash.has(config, 'layouts.%s' % layout):
-            sys.stdout.write(
-                "Layout %s already exists. Replace? [y/N]: " % layout)
-            choice = input().lower()
-            if (choice != 'y'):
-                continue
+            if pydash.has(config, 'layouts.%s' % layout):
+                sys.stdout.write(
+                    "Layout %s already exists. Replace? [y/N]: " % layout)
+                choice = input().lower()
+                if (choice != 'y'):
+                    continue
 
-        pydash.objects.set_(config, 'layouts.%s' % layout, dict(
-            ChainMap(*list(map(lambda window: resolveElem(window, None), windows)))))
+            pydash.objects.set_(config, 'layouts.%s' % layout, dict(
+                ChainMap(*list(map(lambda window: resolveElem(window, None), windows)))))
 
-    config.write()
-
-
-if __name__ == "__main__":
-    main()
+        config.write()
+    except (KeyboardInterrupt, SystemExit):
+        pass
+    except Exception as e:
+        print(e)
