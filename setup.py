@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="terminator-layout-builder",  # Replace with your own username
-    version="0.0.4",
+    version="0.0.5",
     author="Faiz Shukri",
     author_email="faizshukri90@gmail.com",
     description="A Terminator Terminal Layout Builder",

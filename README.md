@@ -2,6 +2,8 @@
 
 Manage [Terminator](https://terminator-gtk3.readthedocs.io/en/latest/) layouts easily using YAML file.
 
+![Terminator Layout Builder](https://s3-ap-southeast-1.amazonaws.com/com.faizsh.misc/terminator-layout-builder.gif)
+
 ## Installation
 
 ```bash
@@ -42,16 +44,16 @@ layoutB:
         - Monitoring
       items:
         - horizontal:
-            ratio: 0.66
+            ratio: 0.5
             panes:
               - vertical:
-                  ratio: 0.5
+                  ratio: 0.67
                   panes:
                     - title: "some title"
                       cmd: pwd
-                    - root: /home/faiz # overwrite window's root
+                    - root: "~" # overwrite window's root
                       cmd: pwd
-              - cmd: tail -f /dev/null
+              - cmd: tail -f /var/log/syslog
         - horizontal:
             panes:
               - cmd: tail -f /dev/null
