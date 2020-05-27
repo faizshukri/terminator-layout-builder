@@ -2,7 +2,7 @@
 
 Manage [Terminator](https://terminator-gtk3.readthedocs.io/en/latest/) layouts easily using YAML file.
 
-![Terminator Layout Builder](https://s3-ap-southeast-1.amazonaws.com/com.faizsh.misc/terminator-layout-builder.gif)
+![Terminator Layout Builder](https://s3-ap-southeast-1.amazonaws.com/com.faizsh.misc/terminator-layout-builder.gif#1)
 
 ## Installation
 
