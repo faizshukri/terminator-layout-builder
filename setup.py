@@ -15,7 +15,7 @@ setuptools.setup(
     license="MIT",
     packages=setuptools.find_packages(),
     include_package_data=True,
-    install_requires=["configobj", "pydash", "pyyaml"],
+    install_requires=["configobj", "pydash", "pyyaml", "expandvars"],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",

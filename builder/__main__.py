@@ -9,6 +9,7 @@ import yaml
 import traceback
 import logging
 import argparse
+from expandvars import expandvars
 
 root = None
 _ID = 0
@@ -45,7 +46,7 @@ def resolveElem(elem, parentElem):
         cmdElem = {
             'parent': parentElem['id'],
             'type': 'Terminal',
-            'command': 'bash -c "trap $SHELL EXIT; %s"' % cmd,
+            'command': 'bash -c "trap $SHELL EXIT; %s"' % expandvars(cmd).replace('\\"', '"').replace('"', '\\"'),
             'profile': 'default'
         }
         if elem.get('order') is not None:
@@ -55,7 +56,7 @@ def resolveElem(elem, parentElem):
             cmdElem['title'] = elem.get('title')
 
         if elemRoot or root:
-            cmdElem['directory'] = elemRoot or root
+            cmdElem['directory'] = expandvars(elemRoot or root)
 
         return {next_id('terminal'): cmdElem}
 
