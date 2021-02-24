@@ -29,10 +29,10 @@ layoutA:
 
 layoutB:
   # A window
-  - root: "/home/user" # root for this window
+  - root: $HOME/project # root for this window
     vertical:
       panes:
-        - cmd: pwd
+        - cmd: pwd && echo $SHELL
         - cmd: whoami
 
   # Another window
