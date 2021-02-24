@@ -1,0 +1,4 @@
+configobj==5.0.6
+pydash==4.9.2
+pyyaml==5.4.1
+six==1.15.0

@@ -149,10 +149,11 @@ def main():
             sys.exit("Layout file not exists [%s]. Skipped." %
                      layoutDefinitionFile)
 
-        cacheFile = open(layoutCacheFile)
-        cacheFileContent = list(
-            filter(None,
-                   cacheFile.read().strip().split(",")))
+        cacheFile = open(layoutCacheFile, "r" if os.path.isfile(layoutCacheFile) else "w+")
+        cacheContent = cacheFile.read()
+        cacheFile.close()
+
+        cacheFileContent = list(filter(None, cacheContent.strip().split(",")))
 
         def filterFn(layout):
             if pydash.has(config, 'layouts.%s' %
@@ -191,7 +192,7 @@ def main():
         cacheFile.close()
 
         if args.layout and pydash.has(config, 'layouts.%s' % args.layout):
-            os.system("terminator -m -b -l %s" % args.layout)
+            os.system("terminator -u -m -b -l %s" % args.layout)
     except (KeyboardInterrupt, SystemExit):
         pass
     except Exception as e:

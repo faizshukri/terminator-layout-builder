@@ -63,7 +63,7 @@ layoutB:
 
 Next, run `tlb` and the layouts will be merge into your Terminator config, and you can start your layout by using Terminator Layout Launcher.
 
-Alternatively, you can also use `tlb -l <layout>` (alias to `terminator -m -b -l <layout>`) to launch your Terminator with the layout.
+Alternatively, you can also use `tlb -l <layout>` (alias to `terminator -u -m -b -l <layout>`) to launch your Terminator with the layout.
 
 ## Inspirations
 
