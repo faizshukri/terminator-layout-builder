@@ -1,5 +1,5 @@
 configobj==5.0.6
 expandvars==0.6.5
-pydash==4.9.2
+pydash==6.0.0
 pyyaml==5.4.1
 six==1.15.0
